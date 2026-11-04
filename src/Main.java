@@ -1,15 +1,14 @@
 import org.antlr.v4.runtime.*;
-import org.antlr.v4.runtime.tree.*;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        CharStream input = CharStreams.fromString("hello world");
+        CharStream input = CharStreams.fromString("var x = 5;");
+        JavaScriptLexer lexer = new JavaScriptLexer(input);
 
-        TestLexer lexer = new TestLexer(input);
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
-        TestParser parser = new TestParser(tokens);
-
-        ParseTree tree = parser.r();
-        System.out.println("Parse Tree: " + tree.toStringTree(parser));
+        for (Token t : lexer.getAllTokens()) {
+            String type = JavaScriptLexer.VOCABULARY.getSymbolicName(t.getType());
+            System.out.println("[" + t.getText() + "] <" + type + "> ("
+                + t.getLine() + ":" + t.getCharPositionInLine() + ")");
+        }
     }
 }
