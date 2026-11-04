@@ -1,0 +1,6 @@
+*.class
+*.interp
+*.tokens
+JavaScriptLexer.java
+.idea/
+out/
