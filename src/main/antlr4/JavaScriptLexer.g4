@@ -1,46 +1,13 @@
 lexer grammar JavaScriptLexer;
-// Section 3:
 
-// Comments
+// ===================== 1. Whitespace & Comments =====================
+WS                     : [ \t\r\n]+ -> skip ;
 HASHBANG_COMMENT       : {getCharIndex() == 0}? '#!' ~[\r\n]* ;
 SINGLE_LINE_COMMENT    : '//' ~[\r\n]* ;
 MULTI_LINE_COMMENT     : '/*' .*? '*/' ;
 HTML_COMMENT           : '<!--' ~[\r\n]* ;
 
-// String literals
-
-STRING
-    : '"'  StrDoubleChar* '"'
-    | '\'' StrSingleChar* '\''
-    ;
-
-fragment StrDoubleChar       : ~["\\\r\n] | StrLineContinuation | StrEscape ;
-fragment StrSingleChar       : ~['\\\r\n] | StrLineContinuation | StrEscape ;
-fragment StrEscape           : '\\' ~[\r\nxu]
-                             | '\\x' StrHex StrHex
-                             | '\\u' StrHex StrHex StrHex StrHex
-                             | '\\u{' StrHex+ '}' ;
-fragment StrHex              : [0-9a-fA-F] ;
-
-fragment StrLineContinuation : '\\' '\r'? '\n' ;
-
-TEMPLATE_STRING   : Template ;
-
-fragment Template      : '`' TemplatePart* '`' ;
-fragment TemplatePart  : '\\' . | TemplateSubst | ~[`\\$] | '$' ;
-fragment TemplateSubst : '${' SubstPart* '}' ;
-fragment SubstPart
-    : Template
-    | '{' SubstPart* '}'
-    | '"'  StrDoubleChar* '"'
-    | '\'' StrSingleChar* '\''
-    | '/*' .*? '*/'
-    | '//' ~[\r\n]*
-    | ~[{}`'"]
-    ;
-
-WS : [ \t\r\n]+ -> skip ;
-// ===================== Reserved Keywords =====================
+// ===================== 2. Reserved Keywords =====================
 BREAK      : 'break' ;
 CASE       : 'case' ;
 CATCH      : 'catch' ;
@@ -73,22 +40,53 @@ VOID       : 'void' ;
 WHILE      : 'while' ;
 WITH       : 'with' ;
 
-// ===================== Variable declarations =====================
+// Variable declarations
 VAR        : 'var' ;
 LET        : 'let' ;
 CONST      : 'const' ;
 
-// ===================== Boolean / null =====================
+// Boolean / null
 BOOLEAN_LITERAL : 'true' | 'false' ;
 NULL_LITERAL    : 'null' ;
 
-// ===================== Identifiers =====================
+// ===================== 3. Identifiers (المعرفات) =====================
 IDENTIFIER : IdentifierStart IdentifierPart* ;
 
 fragment IdentifierStart : [a-zA-Z_$] ;
 fragment IdentifierPart  : [a-zA-Z_$0-9] ;
 
-// ---------- Numbers ----------
+// ===================== 4. String Literals =====================
+// تم إصلاح الأسطر المقطوعة وإعادة النجمة المفقودة لكل القواعد
+STRING
+    : '"'  StrDoubleChar* '"'
+    | '\'' StrSingleChar* '\''
+    ;
+
+fragment StrDoubleChar       : ~["\\\r\n] | StrLineContinuation | StrEscape ;
+fragment StrSingleChar       : ~['\\\r\n] | StrLineContinuation | StrEscape ;
+fragment StrEscape           : '\\' ~[\r\nxu]
+                             | '\\x' StrHex StrHex
+                             | '\\u' StrHex StrHex StrHex StrHex
+                             | '\\u{' StrHex+ '}' ;
+fragment StrHex              : [0-9a-fA-F] ;
+fragment StrLineContinuation : '\\' '\r'? '\n' ;
+
+TEMPLATE_STRING   : Template ;
+
+fragment Template      : '`' TemplatePart* '`' ;
+fragment TemplatePart  : '\\' . | TemplateSubst | ~[`\\$] | '$' ;
+fragment TemplateSubst : '${' SubstPart* '}' ;
+fragment SubstPart
+    : Template
+    | '{' SubstPart* '}'
+    | '"'  StrDoubleChar* '"'
+    | '\'' StrSingleChar* '\''
+    | '/*' .*? '*/'
+    | '//' ~[\r\n]*
+    | ~[{}`'"]
+    ;
+
+// ===================== 5. Numbers =====================
 BIGINT
     : ( DEC_INT | HEX_BODY | OCT_BODY | BIN_BODY ) 'n'
     ;
@@ -112,7 +110,8 @@ fragment HEX_BODY   : '0' [xX] HEX_DIGIT ( '_'? HEX_DIGIT )* ;
 fragment OCT_BODY   : '0' [oO] [0-7] ( '_'? [0-7] )* ;
 fragment BIN_BODY   : '0' [bB] [01] ( '_'? [01] )* ;
 fragment HEX_DIGIT  : [0-9a-fA-F] ;
-// ---------- Operators ----------
+
+// ===================== 6. Operators & Misc =====================
 // Assignment
 ASSIGN          : '=' ;
 PLUS_ASSIGN     : '+=' ;
