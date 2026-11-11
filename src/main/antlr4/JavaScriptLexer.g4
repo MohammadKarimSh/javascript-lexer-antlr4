@@ -1,13 +1,9 @@
 lexer grammar JavaScriptLexer;
 
-// ===================== 1. Whitespace & Comments =====================
-WS                     : [ \t\r\n]+ -> skip ;
-HASHBANG_COMMENT       : {getCharIndex() == 0}? '#!' ~[\r\n]* ;
-SINGLE_LINE_COMMENT    : '//' ~[\r\n]* ;
-MULTI_LINE_COMMENT     : '/*' .*? '*/' ;
-HTML_COMMENT           : '<!--' ~[\r\n]* ;
 
-// ===================== 2. Reserved Keywords =====================
+
+// 1. Reserved Keywords
+
 BREAK      : 'break' ;
 CASE       : 'case' ;
 CATCH      : 'catch' ;
@@ -40,53 +36,13 @@ VOID       : 'void' ;
 WHILE      : 'while' ;
 WITH       : 'with' ;
 
-// Variable declarations
+// ---- Variable declarations ----
 VAR        : 'var' ;
 LET        : 'let' ;
 CONST      : 'const' ;
 
-// Boolean / null
-BOOLEAN_LITERAL : 'true' | 'false' ;
-NULL_LITERAL    : 'null' ;
 
-// ===================== 3. Identifiers (المعرفات) =====================
-IDENTIFIER : IdentifierStart IdentifierPart* ;
-
-fragment IdentifierStart : [a-zA-Z_$] ;
-fragment IdentifierPart  : [a-zA-Z_$0-9] ;
-
-// ===================== 4. String Literals =====================
-// تم إصلاح الأسطر المقطوعة وإعادة النجمة المفقودة لكل القواعد
-STRING
-    : '"'  StrDoubleChar* '"'
-    | '\'' StrSingleChar* '\''
-    ;
-
-fragment StrDoubleChar       : ~["\\\r\n] | StrLineContinuation | StrEscape ;
-fragment StrSingleChar       : ~['\\\r\n] | StrLineContinuation | StrEscape ;
-fragment StrEscape           : '\\' ~[\r\nxu]
-                             | '\\x' StrHex StrHex
-                             | '\\u' StrHex StrHex StrHex StrHex
-                             | '\\u{' StrHex+ '}' ;
-fragment StrHex              : [0-9a-fA-F] ;
-fragment StrLineContinuation : '\\' '\r'? '\n' ;
-
-TEMPLATE_STRING   : Template ;
-
-fragment Template      : '`' TemplatePart* '`' ;
-fragment TemplatePart  : '\\' . | TemplateSubst | ~[`\\$] | '$' ;
-fragment TemplateSubst : '${' SubstPart* '}' ;
-fragment SubstPart
-    : Template
-    | '{' SubstPart* '}'
-    | '"'  StrDoubleChar* '"'
-    | '\'' StrSingleChar* '\''
-    | '/*' .*? '*/'
-    | '//' ~[\r\n]*
-    | ~[{}`'"]
-    ;
-
-// ===================== 5. Numbers =====================
+// 2. Numbers
 BIGINT
     : ( DEC_INT | HEX_BODY | OCT_BODY | BIN_BODY ) 'n'
     ;
@@ -111,8 +67,52 @@ fragment OCT_BODY   : '0' [oO] [0-7] ( '_'? [0-7] )* ;
 fragment BIN_BODY   : '0' [bB] [01] ( '_'? [01] )* ;
 fragment HEX_DIGIT  : [0-9a-fA-F] ;
 
-// ===================== 6. Operators & Misc =====================
-// Assignment
+
+
+
+// 3. Boolean / null
+
+BOOLEAN_LITERAL : 'true' | 'false' ;
+NULL_LITERAL    : 'null' ;
+
+
+
+// 4. String literals
+
+STRING
+    : '"'  StrDoubleChar* '"'
+    | '\'' StrSingleChar* '\''
+    ;
+
+fragment StrDoubleChar       : ~["\\\r\n] | StrLineContinuation | StrEscape ;
+fragment StrSingleChar       : ~['\\\r\n] | StrLineContinuation | StrEscape ;
+fragment StrEscape           : '\\' ~[\r\nxu]
+                             | '\\x' StrHex StrHex
+                             | '\\u' StrHex StrHex StrHex StrHex
+                             | '\\u{' StrHex+ '}' ;
+fragment StrHex              : [0-9a-fA-F] ;
+fragment StrLineContinuation : '\\' '\r'? '\n' ;
+
+// ---- Template literals ----
+TEMPLATE_STRING : Template ;
+
+fragment Template      : '`' TemplatePart* '`' ;
+fragment TemplatePart  : '\\' . | TemplateSubst | ~[`\\$] | '$' ;
+fragment TemplateSubst : '${' SubstPart* '}' ;
+fragment SubstPart
+    : Template
+    | '{' SubstPart* '}'
+    | '"'  StrDoubleChar* '"'
+    | '\'' StrSingleChar* '\''
+    | '/*' .*? '*/'
+    | '//' ~[\r\n]*
+    | ~[{}`'"]
+    ;
+
+
+// 5. Operators
+
+// ---- Assignment ----
 ASSIGN          : '=' ;
 PLUS_ASSIGN     : '+=' ;
 MINUS_ASSIGN    : '-=' ;
@@ -130,7 +130,7 @@ LAND_ASSIGN     : '&&=' ;
 LOR_ASSIGN      : '||=' ;
 NULLISH_ASSIGN  : '??=' ;
 
-// Comparison
+// ---- Comparison ----
 STRICT_EQ       : '===' ;
 STRICT_NEQ      : '!==' ;
 EQ              : '==' ;
@@ -140,7 +140,7 @@ GE              : '>=' ;
 LT              : '<' ;
 GT              : '>' ;
 
-// Arithmetic
+// ---- Arithmetic ----
 INC             : '++' ;
 DEC             : '--' ;
 POW             : '**' ;
@@ -150,7 +150,7 @@ MUL             : '*' ;
 DIV             : '/' ;
 MOD             : '%' ;
 
-// Logical / bitwise
+// ---- Logical / bitwise ----
 AND             : '&&' ;
 OR              : '||' ;
 NULLISH         : '??' ;
@@ -163,9 +163,42 @@ LSHIFT          : '<<' ;
 RSHIFT          : '>>' ;
 URSHIFT         : '>>>' ;
 
-// Misc
+// ---- Misc ----
 ARROW           : '=>' ;
 OPTIONAL_CHAIN  : '?.' ;
 QUESTION        : '?' ;
 COLON           : ':' ;
 ELLIPSIS        : '...' ;
+
+
+// 6. Punctuation   (مضافة: كانت ناقصة بالملف، بدونها ( ) { } [ ] ; , . تطلع أخطاء)
+LPAREN          : '(' ;
+RPAREN          : ')' ;
+LBRACE          : '{' ;
+RBRACE          : '}' ;
+LBRACKET        : '[' ;
+RBRACKET        : ']' ;
+SEMICOLON       : ';' ;
+COMMA           : ',' ;
+DOT             : '.' ;
+
+
+
+// 7. Identifiers
+IDENTIFIER : IdentifierStart IdentifierPart* ;
+
+fragment IdentifierStart : [a-zA-Z_$] ;
+fragment IdentifierPart  : [a-zA-Z_$0-9] ;
+
+
+// 8. Comments
+
+HASHBANG_COMMENT    : {getCharIndex() == 0}? '#!' ~[\r\n]* ;   // #! بأول الملف فقط
+SINGLE_LINE_COMMENT : '//' ~[\r\n]* ;
+MULTI_LINE_COMMENT  : '/*' .*? '*/' ;
+HTML_COMMENT        : '<!--' ~[\r\n]* ;
+
+
+// 9. White space
+
+WS : [ \t\r\n]+ -> skip ;
