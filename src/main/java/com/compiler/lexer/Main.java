@@ -1,42 +1,29 @@
 package com.compiler.lexer;
 
-import com.compiler.lexer.generated.JavaScriptLexer;
-import org.antlr.v4.runtime.CharStreams;
+import com.compiler.lexer.engine.LexerRunner;
+import com.compiler.lexer.errors.LexicalErrorListener;
+import com.compiler.lexer.output.TokenPrinter;
+
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.Token;
 
 public class Main {
 
     public static void main(String[] args) {
 
         String source = """
-                let age = 20;
-                const total = age + 5;
-                """;
+        let age = 20;
+        const total = age + 5;
+        let result = @;
+        """;
 
-        JavaScriptLexer lexer =
-                new JavaScriptLexer(CharStreams.fromString(source));
+        LexicalErrorListener errorListener =
+                new LexicalErrorListener();
 
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
-        tokens.fill();
+        CommonTokenStream tokens =
+                LexerRunner.analyze(source, errorListener);
 
-        System.out.println("TOKEN TYPE\tLEXEME\tLINE\tCOLUMN");
+        TokenPrinter.printTokens(tokens);
 
-        for (Token token : tokens.getTokens()) {
-
-            if (token.getType() == Token.EOF) {
-                break;
-            }
-
-            String tokenType = lexer.getVocabulary()
-                    .getSymbolicName(token.getType());
-
-            System.out.println(
-                    tokenType + "\t\t" +
-                            token.getText() + "\t" +
-                            token.getLine() + "\t" +
-                            (token.getCharPositionInLine() + 1)
-            );
-        }
+        errorListener.printErrors();
     }
 }
