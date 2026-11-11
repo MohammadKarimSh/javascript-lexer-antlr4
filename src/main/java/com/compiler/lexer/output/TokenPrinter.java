@@ -6,56 +6,34 @@ import org.antlr.v4.runtime.Token;
 
 public class TokenPrinter {
 
+    // Order: line:column  (same order as LexicalErrorListener)
+    private static final String TOKEN_FORMAT = "Text: [%s] -> Type: %s (%d:%d)";
+
     public static void printTokens(CommonTokenStream tokens) {
-
-        JavaScriptLexer lexer =
-                (JavaScriptLexer) tokens.getTokenSource();
-
-        System.out.println("\n========== TOKENS ==========");
-
-        System.out.printf(
-                "%-20s %-25s %-10s %-10s%n",
-                "TOKEN TYPE",
-                "LEXEME",
-                "LINE",
-                "COLUMN"
-        );
-
-        System.out.println(
-                "----------------------------------------------------------------"
-        );
-
-        int tokenCount = 0;
+        System.out.println("--- Tokens Found ---");
 
         for (Token token : tokens.getTokens()) {
+            if (token.getType() == Token.EOF) continue;
+            if (isErrorToken(token.getType())) continue;   // reported in the errors section
 
-            if (token.getType() == Token.EOF) {
-                continue;
-            }
+            // Comments are on the HIDDEN channel but must still be listed.
+            String type = JavaScriptLexer.VOCABULARY.getSymbolicName(token.getType());
+            String text = token.getText()
+                    .replace("\r", "\\r")
+                    .replace("\n", "\\n")
+                    .replace("\t", "\\t");
 
-            String tokenType = lexer.getVocabulary()
-                    .getSymbolicName(token.getType());
-
-            if (tokenType == null) {
-                tokenType = lexer.getVocabulary()
-                        .getDisplayName(token.getType());
-            }
-
-            System.out.printf(
-                    "%-20s %-25s %-10d %-10d%n",
-                    tokenType,
-                    token.getText(),
-                    token.getLine(),
-                    token.getCharPositionInLine() + 1
-            );
-
-            tokenCount++;
+            System.out.println(String.format(TOKEN_FORMAT, text, type,
+                    token.getLine(), token.getCharPositionInLine() + 1));
         }
+    }
 
-        System.out.println(
-                "----------------------------------------------------------------"
-        );
-
-        System.out.println("Total Tokens: " + tokenCount);
+    private static boolean isErrorToken(int type) {
+        return type == JavaScriptLexer.ERROR_CHAR
+                || type == JavaScriptLexer.INVALID_NUMBER
+                || type == JavaScriptLexer.UNCLOSED_DOUBLE_STRING
+                || type == JavaScriptLexer.UNCLOSED_SINGLE_STRING
+                || type == JavaScriptLexer.UNCLOSED_TEMPLATE
+                || type == JavaScriptLexer.UNCLOSED_COMMENT;
     }
 }
